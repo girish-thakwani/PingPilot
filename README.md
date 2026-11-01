@@ -1,62 +1,43 @@
 # PingPilot
 
-PingPilot is a resilient, resumable outreach automation project for web-based messaging workflows. It combines structured automation ideas with practical Playwright-based execution for workflows such as WhatsApp Web outreach, while keeping the system robust enough to pause, retry, and resume without losing context.
+PingPilot is currently focused on multimodal browser-agent research: improving how models ground actions to the correct page element. The repository also contains earlier workflow-automation and Playwright tooling.
 
 ## Problem
-Automate your workflows
 
-## Problem : 
+Multimodal browser agents can predict the right action but still interact with the wrong page element. This is an
+element-grounding problem: selecting the correct DOM element for a task, rather than only predicting an action
+such as click or fill.
 
-Predicting the next element within the website DOM for a specific workflow using multimodal web agents,
-although the model knows which element to click but it picks the wrong.
+## Project origin
 
-## Problem initiation
+This project grew out of automating workflows for justyouapparels.in. Building the workflows manually was
+tedious, and browser agents such as Stagehand and Browser Use sometimes selected the wrong controls. This
+highlighted the limits of relying on screenshots or flattened DOM text alone to understand a page.
 
-While automating a couple of tasks within the organization (justyouapparels.in), the creation of workflow was
-itself a tedious process. Tried to implement these task directly using multimodal webagents like stagehand and
-browseruse but were failing and clicking the wrong button. Found that most of them uses images and plain DOM text
-for there step prediction.
+## Research background
 
-## Research
-## Problem initiation :
+The Mind2Web dataset ([project page](https://osu-nlp-group.github.io/Mind2Web/)) provides browser tasks and
+page context for studying this challenge. PingPilot explores whether richer page representations can help a
+model distinguish the intended element from other similar candidates.
 
-While automating a couple of tasks within the organization (https://justyouapparels.in), the creation of workflow was
-itself a tedious process. Tried to implement these task directly using multimodal webagents like stagehand and 
-browseruse but were failing and clicking the wrong button. Found that most of them uses images and plain DOM text
-for there step prediction.
+## Longer-term research direction
 
-## Research :
-
-Found the dataset from Mind2Web(https://osu-nlp-group.github.io/Mind2Web/) and analysed
-and funneled that the issue is not action or element prediction but actually element grounding. Most of the
-systems turns the page DOM into plain text and hope a large model infers the structure.
-
-## Intuition towards the solution
-
-Instead of forcing an LLM to understand an entire web page from scratch on every task, you give it a
-structured representation of the page and train a relatively small set of components to combine that
-
-## Intuition towards the solution :
-
-Instead of forcing an LLM to understand an entire web page from scratch on every task, we give it a 
-structured representation of the page and train a relatively small set of components to combine that 
-information effectively.
-
-we can convert each webpage’s DOM elements into a directed graph to capture their structure and relationships.
-This information is combined with the frozen Qwen3-VL-8B (https://ollama.com/library/qwen3-vl:8b) model using
-a Graph Attention Network and a lightweight cross-attention adapter. We can use LoRA to fine-tune only a small
-number of parameters, allowing the entire system to be trained.
+One direction is to represent webpage DOM elements as a graph that captures their structure and relationships,
+then combine that information with vision-language reasoning. The original concept considered a Graph Attention
+Network, a lightweight cross-attention adapter, and LoRA fine-tuning with a Qwen3-VL model. This remains a
+research direction; the current model experiment documented below is a Qwen2-VL candidate-selection prototype.
 
 ## Current focus: Inference and evaluation
 
-This project is currently centered on the inference and evaluation work for grounding and action prediction on Mind2Web-style browser tasks. The core goal is to improve how a model selects the correct element in the DOM, not just predict the next action.
+This project is currently centered on inference and evaluation for grounding and action prediction on Mind2Web-style browser tasks. The core goal is to improve how a model selects the correct element in the DOM, not just predict the next action.
 
-The repository includes an experimental research layer in the `Inference/` folder that directly addresses this challenge. This is the active focus of the project right now.
+The experimental research code in `Inference/`, `models/`, and the dataset/AXTree utilities addresses this challenge. This is the active focus of the project right now.
 
 ### What is included
 
 - `batch_inference.py`: a template for running baseline inference across multiple modality settings, including text-only, image-only, multimodal, and axtree-aware setups
 - `inference_VLM.py`: an evaluation script that reads model predictions in JSONL format and computes grounding and action quality metrics
+- `models/multimodel_qwen.py`: an initial Qwen2-VL inference prototype that combines a task, a screenshot, truncated page HTML, and candidate actions to predict the correct candidate index
 
 ### Baseline directions supported
 
@@ -69,7 +50,11 @@ The inference setup is designed to compare several model configurations, such as
 - multimodal + axtree combinations
 - chain-of-thought style variants
 
-This allows the project to benchmark whether structural context improves element grounding compared to using raw text or screenshots alone.
+The batch baseline runner is currently a scaffold: its model loading and inference functions are placeholders. The Qwen2-VL script is the current end-to-end model experiment, and compares its predicted action index with the dataset target on the `test_website` split.
+
+The Qwen2-VL prototype uses `Qwen/Qwen2-VL-7B-Instruct` with 4-bit NF4 quantization and automatic device mapping. It loads the Multimodal Mind2Web dataset from Hugging Face and supplies screenshot, task text, cleaned HTML (up to 8,000 characters), and candidate action descriptions to the model. This allows the project to explore whether combining visual and textual context helps select the right action candidate.
+
+The prototype currently reports overall candidate-index accuracy and keeps per-example results in memory; it does not yet save predictions to a file or connect directly to the JSONL evaluation utility. Running it requires a CUDA-capable environment with enough GPU resources for the quantized model.
 
 ### Evaluation metrics
 
@@ -88,7 +73,7 @@ The evaluation layer measures the core metrics needed to validate browser ground
 
 These scripts provide the benchmark layer for the project’s core hypothesis: structured page representations, such as DOM graphs or axtree-style relational structure, can improve grounding accuracy and reduce failures caused by weak localization in browser interfaces. In other words, the model should reason over structure, not just flattened page text.
 
-This research-facing evaluation layer supports the current work: combining graph-structured DOM knowledge with vision-language reasoning to improve robust element selection in real web workflows.
+This research-facing evaluation layer supports the current work: testing whether structural page representations and vision-language reasoning can improve element selection. AXTree preprocessing is available, while graph-model integration and the baseline comparisons remain research directions rather than completed model implementations.
 
 ## Project direction
 
@@ -178,14 +163,10 @@ This repository is a working prototype and research-direction project intended t
 ## License
 
 This project is currently maintained as a local research and automation prototype. Licensing terms should be confirmed before production deployment or commercial reuse.
-## Solution for now :
+## Earlier solution direction
 
 Extract relevant interactive elements from the webpage’s DOM, retrieve similar workflows and contextual information
 using RAG, and provide them to an LLM to determine the appropriate action. This approach eliminates the need for
 custom model training or a Graph Attention Network, making the system simpler, more flexible, and easier to implement.
 
-
-
-
-
-
+This remains a proposed direction; the current Qwen2-VL prototype instead evaluates candidate action selection using task text, page HTML, and screenshots.
