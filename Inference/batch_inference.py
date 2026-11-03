@@ -24,7 +24,7 @@ BASELINES = [
 ]
 
 # TODO: Replace with your dataset loader
-DATASET_PATH = "path/to/mind2web.jsonl"
+DATASET_PATH = "data/mind2web.jsonl"
 
 def load_dataset(path: str) -> List[Dict]:
     # Dummy loader: replace with your actual dataset loading logic
