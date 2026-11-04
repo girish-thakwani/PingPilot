@@ -28,8 +28,10 @@ model.eval()
 processor = AutoProcessor.from_pretrained(MODEL_NAME)
 
 # Load dataset directly from Hugging Face
-print("Loading dataset from Hugging Face...")
-dataset = load_dataset("osunlp/Multimodal-Mind2Web", split="test_website")
+#print("Loading dataset from Hugging Face...")
+#dataset = load_dataset("osunlp/Multimodal-Mind2Web", split="test_website")
+from datasets import load_from_disk
+dataset = load_from_disk("data/mind2web/test_website")
 correct = 0
 total = 0
 results = []
