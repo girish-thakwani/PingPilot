@@ -2,9 +2,6 @@
 
 PingPilot is a resilient, resumable outreach automation project for web-based messaging workflows. It combines structured automation ideas with practical Playwright-based execution for workflows such as WhatsApp Web outreach, while keeping the system robust enough to pause, retry, and resume without losing context.
 
-## Problem
-Automate your workflows
-
 ## Problem : 
 
 Predicting the next element within the website DOM for a specific workflow using multimodal web agents,
