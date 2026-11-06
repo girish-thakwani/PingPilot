@@ -27,11 +27,6 @@ Found the dataset from Mind2Web(https://osu-nlp-group.github.io/Mind2Web/) and a
 and funneled that the issue is not action or element prediction but actually element grounding. Most of the
 systems turns the page DOM into plain text and hope a large model infers the structure.
 
-## Intuition towards the solution
-
-Instead of forcing an LLM to understand an entire web page from scratch on every task, you give it a
-structured representation of the page and train a relatively small set of components to combine that
-
 ## Intuition towards the solution :
 
 Instead of forcing an LLM to understand an entire web page from scratch on every task, we give it a 
